@@ -51,7 +51,7 @@ export class Utils {
     for (let eventsIndex = 0; eventsIndex < events.length; eventsIndex++) {
       bindingType = Object.keys(functionObject["events"][eventsIndex])[0];
 
-      if (eventsIndex === 0) {
+      if (eventsIndex === 0 && !constants.durableFunctionTriggers.includes(bindingType)) {
         bindingType += constants.trigger;
       }
 
