@@ -1,11 +1,14 @@
 import { relative, join } from "path";
 import Serverless from "serverless";
-import { ServerlessAzureConfig, ServerlessAzureFunctionConfig } from "../models/serverless";
+import {
+  ServerlessAzureConfig,
+  ServerlessAzureFunctionConfig,
+} from "../models/serverless";
 import { BindingUtils } from "./bindings";
 import { constants } from "./constants";
-import { createInterface } from "readline"
+import { createInterface } from "readline";
 import { SpawnOptions, StdioOptions } from "child_process";
-import { spawn } from "cross-spawn"
+import { spawn } from "cross-spawn";
 import { getRuntimeLanguage } from "../config/runtime";
 
 export interface FunctionMetadata {
@@ -28,7 +31,11 @@ export interface ServerlessSpawnOptions {
 }
 
 export class Utils {
-  public static async getFunctionMetaData(functionName: string, serverless: Serverless, offlineMode: boolean = false): Promise<FunctionMetadata> {
+  public static async getFunctionMetaData(
+    functionName: string,
+    serverless: Serverless,
+    offlineMode: boolean = false
+  ): Promise<FunctionMetadata> {
     const config: ServerlessAzureConfig = serverless.service as any;
     const bindings = [];
     let bindingSettingsNames = [];
@@ -40,7 +47,7 @@ export class Utils {
     const handler = functionObject.handler;
     const events = functionObject["events"];
     const params: any = {
-      functionJson: null
+      functionJson: null,
     };
 
     const parsedBindings = await BindingUtils.getBindingsMetaData(serverless);
@@ -51,7 +58,10 @@ export class Utils {
     for (let eventsIndex = 0; eventsIndex < events.length; eventsIndex++) {
       bindingType = Object.keys(functionObject["events"][eventsIndex])[0];
 
-      if (eventsIndex === 0 && !constants.durableFunctionTriggers.includes(bindingType)) {
+      if (
+        eventsIndex === 0 &&
+        !constants.durableFunctionTriggers.includes(bindingType)
+      ) {
         bindingType += constants.trigger;
       }
 
@@ -61,7 +71,9 @@ export class Utils {
         throw new Error(`Binding  ${bindingType} not supported`);
       }
 
-      serverless.cli.log(`Building binding for function: ${functionName} event: ${bindingType}`);
+      serverless.cli.log(
+        `Building binding for function: ${functionName} event: ${bindingType}`
+      );
 
       bindingUserSettings = {};
 
@@ -69,16 +81,26 @@ export class Utils {
       // Prefers the event and will override anything in x-azure-settings
       const azureSettings = {
         ...events[eventsIndex][constants.xAzureSettings],
-        ...events[eventsIndex]
+        ...events[eventsIndex],
       };
       let bindingTypeIndex = bindingTypes.indexOf(bindingType);
-      const bindingUserSettingsMetaData = BindingUtils.getBindingUserSettingsMetaData(azureSettings, bindingType, bindingTypeIndex, bindingDisplayNames);
+      const bindingUserSettingsMetaData =
+        BindingUtils.getBindingUserSettingsMetaData(
+          azureSettings,
+          bindingType,
+          bindingTypeIndex,
+          bindingDisplayNames
+        );
 
       bindingTypeIndex = bindingUserSettingsMetaData.index;
       bindingUserSettings = bindingUserSettingsMetaData.userSettings;
 
-      if (bindingType.includes(constants.queue) && functionObject["events"][eventsIndex].queue) {
-        bindingUserSettings[constants.queueName] = functionObject["events"][eventsIndex].queue;
+      if (
+        bindingType.includes(constants.queue) &&
+        functionObject["events"][eventsIndex].queue
+      ) {
+        bindingUserSettings[constants.queueName] =
+          functionObject["events"][eventsIndex].queue;
       }
 
       if (bindingTypeIndex < 0) {
@@ -86,10 +108,15 @@ export class Utils {
       }
 
       bindingSettings = parsedBindings.bindingSettings[bindingTypeIndex];
-      bindingSettingsNames = parsedBindings.bindingSettingsNames[bindingTypeIndex];
+      bindingSettingsNames =
+        parsedBindings.bindingSettingsNames[bindingTypeIndex];
 
       if (azureSettings) {
-        for (let azureSettingKeyIndex = 0; azureSettingKeyIndex < Object.keys(azureSettings).length; azureSettingKeyIndex++) {
+        for (
+          let azureSettingKeyIndex = 0;
+          azureSettingKeyIndex < Object.keys(azureSettings).length;
+          azureSettingKeyIndex++
+        ) {
           const key = Object.keys(azureSettings)[azureSettingKeyIndex];
 
           if (bindingSettingsNames.indexOf(key) >= 0) {
@@ -98,7 +125,13 @@ export class Utils {
         }
       }
 
-      bindings.push(BindingUtils.getBinding(bindingType, bindingSettings, bindingUserSettings));
+      bindings.push(
+        BindingUtils.getBinding(
+          bindingType,
+          bindingSettings,
+          bindingUserSettings
+        )
+      );
     }
 
     if (bindingType === constants.httpTrigger) {
@@ -108,34 +141,48 @@ export class Utils {
     functionJson.bindings = bindings;
     params.functionJson = functionJson;
 
-    let { handlerPath, entryPoint } = Utils.getEntryPointAndHandlerPath(handler, config);
+    let { handlerPath, entryPoint } = Utils.getEntryPointAndHandlerPath(
+      handler,
+      config
+    );
 
     if (functionObject["scriptFile"]) {
       handlerPath = functionObject["scriptFile"];
     }
 
-    if (offlineMode && config.plugins && config.plugins.includes("serverless-webpack")) {
-      handlerPath = join(".webpack", "service", handlerPath)
+    if (
+      offlineMode &&
+      config.plugins &&
+      config.plugins.includes("serverless-webpack")
+    ) {
+      handlerPath = join(".webpack", "service", handlerPath);
     }
 
     return {
       entryPoint,
       handlerPath: relative(functionName, handlerPath).replace(/\\/g, "/"),
-      params: params
+      params: params,
     };
   }
 
-  public static getEntryPointAndHandlerPath(handler: string, config: ServerlessAzureConfig) {
+  public static getEntryPointAndHandlerPath(
+    handler: string,
+    config: ServerlessAzureConfig
+  ) {
     const handlerSplit = handler.split(".");
 
-    const entryPoint = (handlerSplit.length > 1) ? handlerSplit[handlerSplit.length - 1] : undefined;
+    const entryPoint =
+      handlerSplit.length > 1
+        ? handlerSplit[handlerSplit.length - 1]
+        : undefined;
 
-    const handlerPath = ((handlerSplit.length > 1) ? handlerSplit[0] : handler) 
-      + constants.runtimeExtensions[getRuntimeLanguage(config.provider.runtime)]
+    const handlerPath =
+      (handlerSplit.length > 1 ? handlerSplit[0] : handler) +
+      constants.runtimeExtensions[getRuntimeLanguage(config.provider.runtime)];
 
     return {
       entryPoint,
-      handlerPath
+      handlerPath,
     };
   }
 
@@ -144,10 +191,13 @@ export class Utils {
    * @param substringSize Size of substring to take from beginning of each string
    * @param args Strings to take substrings from
    */
-  public static appendSubstrings(substringSize: number, ...args: string[]): string {
+  public static appendSubstrings(
+    substringSize: number,
+    ...args: string[]
+  ): string {
     let result = "";
     for (const s of args) {
-      result += (s.substr(0, substringSize));
+      result += s.substr(0, substringSize);
     }
     return result;
   }
@@ -156,7 +206,7 @@ export class Utils {
     if (key in object) {
       return object[key];
     }
-    return defaultValue
+    return defaultValue;
   }
 
   public static getTimestampFromName(name: string): string {
@@ -168,14 +218,18 @@ export class Utils {
     return match[1];
   }
 
-  public static getIncomingBindingConfig(functionConfig: ServerlessAzureFunctionConfig) {
+  public static getIncomingBindingConfig(
+    functionConfig: ServerlessAzureFunctionConfig
+  ) {
     return functionConfig.events.find((event) => {
       const settings = Utils.get(event, constants.xAzureSettings, event);
       return settings && (!settings.direction || settings.direction === "in");
     });
   }
 
-  public static getOutgoingBindingConfig(functionConfig: ServerlessAzureFunctionConfig) {
+  public static getOutgoingBindingConfig(
+    functionConfig: ServerlessAzureFunctionConfig
+  ) {
     return functionConfig.events.find((event) => {
       const settings = Utils.get(event, constants.xAzureSettings, event);
       return settings && settings.direction === "out";
@@ -188,7 +242,11 @@ export class Utils {
    * @param maxRetries The max number of retries
    * @param retryWaitInterval The time to wait between retries
    */
-  public static async runWithRetry<T>(operation: (retry?: number) => Promise<T>, maxRetries: number = 3, retryWaitInterval: number = 1000) {
+  public static async runWithRetry<T>(
+    operation: (retry?: number) => Promise<T>,
+    maxRetries: number = 3,
+    retryWaitInterval: number = 1000
+  ) {
     let retry = 0;
     let error = null;
 
@@ -196,8 +254,7 @@ export class Utils {
       try {
         retry++;
         return await operation(retry);
-      }
-      catch (e) {
+      } catch (e) {
         error = e;
       }
 
@@ -230,10 +287,10 @@ export class Utils {
       rl.question("", (answer: string) => {
         rl.close();
         resolve(answer);
-      })
+      });
     });
   }
-  
+
   /*
    * Spawn a Node child process from executable within node_modules/.bin
    * @param command CLI Command - NO ARGS
@@ -241,12 +298,9 @@ export class Utils {
    */
   public static spawnLocal(options: ServerlessSpawnOptions): Promise<void> {
     const { serverless, command } = options;
-    const localCommand = join(
-      serverless.config.servicePath,
-      "node_modules",
-      ".bin",
-      command
-    );
+    const serviceDir =
+      process.env.SLS_SERVICE_DIR || serverless.config.servicePath;
+    const localCommand = join(serviceDir, "node_modules", ".bin", command);
     return this.spawn({
       ...options,
       command: localCommand,
@@ -257,7 +311,7 @@ export class Utils {
   // public static spawn()
 
   public static spawn(options: ServerlessSpawnOptions): Promise<void> {
-    const { 
+    const {
       command,
       serverless,
       commandArgs,
@@ -272,15 +326,17 @@ export class Utils {
       ...process.env,
       // Environment variables from serverless config are king
       ...serverless.service.provider["environment"],
-    }
+    };
     if (!options.silent) {
-      serverless.cli.log(`Spawning process '${commandName || command} ${commandArgs.join(" ")}'`);
+      serverless.cli.log(
+        `Spawning process '${commandName || command} ${commandArgs.join(" ")}'`
+      );
     }
     return new Promise(async (resolve, reject) => {
-      const spawnOptions: SpawnOptions = { 
+      const spawnOptions: SpawnOptions = {
         env,
         stdio: stdio || "inherit",
-        cwd: cwd
+        cwd: cwd,
       };
 
       const childProcess = spawn(command, commandArgs, spawnOptions);
@@ -293,7 +349,7 @@ export class Utils {
         if (code === 0) {
           resolve();
         } else {
-          serverless.cli.log("Got an exit")
+          serverless.cli.log("Got an exit");
           reject(`${code} ${signal}`);
         }
       });

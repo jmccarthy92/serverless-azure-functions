@@ -1,12 +1,14 @@
 {
   "name": "serverless-azure-functions-brkfst",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Provider plugin for the Serverless Framework v1.x which adds support for Azure Functions.",
   "license": "MIT",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "author": "Azure Functions",
-  "files": ["lib/"],
+  "files": [
+    "lib/"
+  ],
   "scripts": {
     "start": "npm run test -- --watch",
     "lint": "eslint src/**/*.ts",
