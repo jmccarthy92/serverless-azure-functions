@@ -1555,7 +1555,7 @@
                     "help": "$cosmosDBIn_databaseName_help"
                 },
                 {
-                    "name": "collectionName",
+                    "name": "containerName",
                     "value": "string",
                     "defaultValue": "MyCollection",
                     "required": true,
@@ -1563,7 +1563,7 @@
                     "help": "$cosmosDBIn_collectionName_help"
                 },
                 {
-                    "name": "connectionStringSetting",
+                    "name": "connection",
                     "value": "string",
                     "resource": "CosmosDB",
                     "required": true,
@@ -1626,7 +1626,7 @@
                     "help": "$cosmosDBOut_databaseName_help"
                 },
                 {
-                    "name": "collectionName",
+                    "name": "containerName",
                     "value": "string",
                     "defaultValue": "MyCollection",
                     "required": true,
@@ -1642,7 +1642,7 @@
                     "help": "$cosmosDBOut_createIfNotExists_help"
                 },
                 {
-                    "name": "connectionStringSetting",
+                    "name": "connection",
                     "value": "string",
                     "resource": "CosmosDB",
                     "required": true,
@@ -1682,7 +1682,7 @@
                     "help": "$cosmosDBIn_databaseName_help"
                 },
                 {
-                    "name": "collectionName",
+                    "name": "containerName",
                     "value": "string",
                     "defaultValue": "MyCollection",
                     "required": true,
@@ -1706,7 +1706,7 @@
                     "help": "$cosmosDBIn_createLeaseCollectionIfNotExists_help"
                 },
                 {
-                    "name": "connectionStringSetting",
+                    "name": "connection",
                     "value": "string",
                     "resource": "CosmosDB",
                     "required": true,
